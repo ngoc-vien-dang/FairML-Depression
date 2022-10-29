@@ -3,7 +3,7 @@ Author: Vien Ngoc Dang
 
 <img src="imgs/banner.jpg" >
 
-This is the implementation of the paper <b><i>Fairness and bias correction in machine learning for depression prediction: results from four different study populations</i></b>. In this projetc, we will see how to audit and address algorithmic bias. 
+This is the implementation of the paper <b><i>Fairness and bias correction in machine learning for depression prediction: results from four different study populations</i></b>. In this projet, we will see how to audit and address algorithmic bias. 
 
 #### Supported bias mitigation strategies
 * Suppression (SUP)
