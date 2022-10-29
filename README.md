@@ -1,4 +1,4 @@
-# Fair Machine Learning for depression prediction using exposome data
+# Fair Machine Learning for Depression Prediction Using Exposome ata
 Author: Vien Ngoc Dang
 
 <img src="imgs/banner.jpg" >
