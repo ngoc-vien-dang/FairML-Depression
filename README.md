@@ -1,4 +1,4 @@
-# Fair Machine Learning for Depression Prediction Using Exposome Data
+# Fairness and Bias Mitigation in ML-based Depression Prediction
 Author: Vien Ngoc Dang
 
 <img src="imgs/banner.jpg" >
