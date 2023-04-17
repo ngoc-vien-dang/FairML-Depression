@@ -1,7 +1,9 @@
 # Fairness and Bias Mitigation in ML-based Depression Prediction
 Author: Vien Ngoc Dang
 
-<img src="imgs/banner.jpg" >
+<p align="center">
+  <img src="imgs/fairness_pipeline.png">
+</p>
 
 This is the implementation of the paper <b><i>Fairness and bias correction in machine learning for depression prediction: results from four different study populations</i></b> ([Dang et al., 2022](https://arxiv.org/abs/2211.05321)). In this project, we will see how to audit and address algorithmic bias. 
 
