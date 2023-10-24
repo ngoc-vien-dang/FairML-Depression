@@ -17,3 +17,14 @@ This is the implementation of the paper <b><i>Fairness and bias correction in ma
 #### How to run the code
 * ./utils and ./algorithms contain python files to implement ML models and bias mitigation algorithms
 * The jypyter notebooks showed different steps to build an fair ML model associated with a *categorical* protected attribute (Notebook1) and a *continous* protected attribute (Notebook2)
+
+#### Data availability
+All four datasets are free to download for research purposes from:
+- LONGSCAN: [https://www.ndacan.acf.hhs.gov/datasets/dataset-details.cfm?ID=170](https://www.ndacan.acf.hhs.gov/datasets/dataset-details.cfm?ID=170)
+- FUUS: [https://datadryad.org/stash/dataset/doi:10.5061/dryad.54qt7](https://datadryad.org/stash/dataset/doi:10.5061/dryad.54qt7)
+- NHANES: [https://wwwn.cdc.gov/nchs/nhanes/default.aspx](https://wwwn.cdc.gov/nchs/nhanes/default.aspx)
+- UK Biobank (UKB): [https://www.ukbiobank.ac.uk/enable-your-research/register](https://www.ukbiobank.ac.uk/enable-your-research/register)
+
+FUUS and NHANES datasets are open access and can be downloaded directly from their links above. LONGSCAN and UKB datasets can be accessed under request to the National Data Archive on Child Abuse and Neglect (NDACAN) and the UK Biobank Access Management Team, respectively. The results for UKB in this study will be returned to the UK Biobank within 6 months since publication, as required.
+
+
