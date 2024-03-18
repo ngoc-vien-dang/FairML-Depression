@@ -3,7 +3,7 @@ File name: st.py
 Author: ngocviendang
 Date created: October 26, 2022
 
-This file contains functions for auditing algorithmic bias (3st).
+This file contains functions for addressing algorithmic bias (psta).
 """
 import numpy as np
 import pandas as pd
@@ -13,7 +13,7 @@ from aif360.metrics import BinaryLabelDatasetMetric
 from aif360.metrics import ClassificationMetric
 from joblib import dump, load
 
-def st(X_train,y_train,X_test,y_test,cls_mdls,cls_3st,model_path,unprivileged_groups,privileged_groups,\
+def psta(X_train,y_train,X_test,y_test,cls_mdls,cls_3st,model_path,unprivileged_groups,privileged_groups,\
               conditions,label_name,protected_attribute_name,protected_attribute_values,i,\
               unprivileged_value_3st,sup=[]):
     train_ds = BinaryLabelDataset(df=X_train.join(y_train),\

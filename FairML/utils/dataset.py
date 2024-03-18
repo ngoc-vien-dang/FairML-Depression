@@ -1,7 +1,7 @@
 """
 File name: dataset.py
 Author: ngocviendang
-Date created: October 26, 2022
+Date created: March 17, 2024
 
 This file contains functions for data transforms and training models.
 """
@@ -18,7 +18,7 @@ from sklearn.linear_model import LogisticRegression
 
 FOLDS = 10
 f2_scorer = make_scorer(fbeta_score, beta=2)
-######LONGSCAN#######
+# Dataset: LONGSCAN
 def model_preparation_longscan(X_train,X_test):
     imp_median = SimpleImputer(missing_values=np.nan, strategy='most_frequent')
     X_train_imputed = imp_median.fit_transform(X_train)
@@ -36,7 +36,7 @@ def model_preparation_longscan(X_train,X_test):
     ohe_train = encoder.fit_transform(X_train_imputed[ohe_cols])
     ohe_test = encoder.transform(X_test_imputed[ohe_cols])
     # Getting the new names of the columns
-    col_names = encoder.get_feature_names(ohe_cols)
+    col_names = encoder.get_feature_names_out(ohe_cols)
     # Turning the encoded columns into dataframes
     ohe_train_df = pd.DataFrame(ohe_train, columns=col_names, index=X_train.index)
     ohe_test_df = pd.DataFrame(ohe_test, columns=col_names, index=X_test.index)
@@ -57,52 +57,25 @@ def model_preparation_longscan(X_train,X_test):
     X_test_tf = pd.concat([ohe_test_df, trans_test_df,X_test_imputed], axis=1)
     return X_train_tf, X_test_tf
 
-# Optimal list of hyperparameters by performing nested cross-validation
-longscan_lr_list = [{'C': [0.01], 'penalty': ['l2'], 'solver': ['liblinear']},\
-{'C': [0.01], 'penalty': ['l2'], 'solver': ['liblinear']},\
-{'C': [0.01], 'penalty': ['l2'], 'solver': ['liblinear']},\
-{'C': [0.01], 'penalty': ['l2'], 'solver': ['liblinear']},\
-{'C': [0.01], 'penalty': ['l2'], 'solver': ['liblinear']},\
-{'C': [0.01], 'penalty': ['l2'], 'solver': ['liblinear']},\
-{'C': [0.1], 'penalty': ['l2'], 'solver': ['liblinear']},\
-{'C': [0.01], 'penalty': ['l2'], 'solver': ['liblinear']},\
-{'C': [0.01], 'penalty': ['l2'], 'solver': ['liblinear']},\
-{'C': [0.01], 'penalty': ['l2'], 'solver': ['liblinear']}]
-
-def longscan_lr(X_train,y_train,sample_weight,i):
+def longscan_lr(X_train,y_train,sample_weight):
     model = LogisticRegression(class_weight='balanced',max_iter=1000)
-    solvers = ['newton-cg', 'lbfgs', 'liblinear']
-    penalty = ['l2']
-    c_values = [100, 10, 1.0, 0.1, 0.01]
-    # define grid search
-    grid = longscan_lr_list[i]
+    lr_params = {'solver': ['newton-cg', 'lbfgs', 'liblinear'], 'penalty': ['l2'], 'C': [100, 10, 1.0, 0.1, 0.01]}
     kfold = StratifiedKFold(n_splits=FOLDS, shuffle=True, random_state=9)
-    grid_search = GridSearchCV(model, grid,  scoring=f2_scorer, n_jobs=-1, cv=kfold)
+    grid_search = GridSearchCV(model, lr_params,  scoring=f2_scorer, n_jobs=-1, cv=kfold)
     grid_result = grid_search.fit(X_train, y_train)
     print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
     # fitting to the training data,
     lr_opt = LogisticRegression(**grid_result.best_params_,random_state=9, max_iter=1000,class_weight='balanced')
     lr_opt = lr_opt.fit(X_train, y_train,sample_weight=sample_weight)
     return lr_opt
-longscan_xgb_list = [{'subsample': [0.7], 'min_child_weight': [5], 'max_depth': [1], 'learning_rate': [0.3]},\
-            {'subsample': [0.3], 'min_child_weight': [5], 'max_depth': [1], 'learning_rate': [0.1]},\
-            {'subsample': [0.7], 'min_child_weight': [1], 'max_depth': [1], 'learning_rate': [0.3]},\
-            {'subsample': [0.7], 'min_child_weight': [3], 'max_depth': [1], 'learning_rate': [0.2]},\
-            {'subsample': [0.5], 'min_child_weight': [3], 'max_depth': [1], 'learning_rate': [0.2]},\
-            {'subsample': [0.7], 'min_child_weight': [3], 'max_depth': [1], 'learning_rate': [0.1]},\
-            {'subsample': [0.7], 'min_child_weight': [3], 'max_depth': [1], 'learning_rate': [0.1]},\
-            {'subsample': [0.3], 'min_child_weight': [5], 'max_depth': [1], 'learning_rate': [0.1]},\
-            {'subsample': [0.3], 'min_child_weight': [5], 'max_depth': [1], 'learning_rate': [0.2]},\
-            {'subsample': [0.5], 'min_child_weight': [1], 'max_depth': [1], 'learning_rate': [0.1]}]
 
-def longscan_xgb(X_train,y_train,sample_weight,i):
+def longscan_xgb(X_train,y_train,sample_weight):
     counter = Counter(y_train)
     estimate = counter[0] / counter[1]
-    #xgb_params = {'max_depth': [1,3,5], 
-              #'learning_rate': [0.1,0.2,0.3], 
-              #'min_child_weight': [1,3,5], 
-              #'subsample': [.3,0.5,0.7]}
-    xgb_params = longscan_xgb_list[i]
+    xgb_params = {'max_depth': [1,3,5], 
+              'learning_rate': [0.1,0.2,0.3], 
+              'min_child_weight': [1,3,5], 
+              'subsample': [.3,0.5,0.7]}
     # Creating the classifier
     xgb_clf = XGBClassifier(n_jobs=-1, random_state=123,scale_pos_weight=estimate)
     kfold = StratifiedKFold(n_splits=10, shuffle=True, random_state=9)
@@ -114,8 +87,7 @@ def longscan_xgb(X_train,y_train,sample_weight,i):
     xgb_opt = XGBClassifier(random_seed=9,**xgb_grid.best_params_,scale_pos_weight=estimate)
     xgb_opt  = xgb_opt.fit(X_train, y_train,sample_weight=sample_weight)
     return xgb_opt
-
-######FUUS########
+# Dataset: FUUS
 def cmToM(row):
     m = row / 100
     return m
@@ -144,7 +116,6 @@ def model_preparation_fuus(X_train, X_test):
     X_train_imputed['BMI'] = bmiCalc(X_train_imputed['Height (m)'], X_train_imputed['Weight (kg)'])
     X_train_imputed['pulse_pressure'] = X_train_imputed['Systolic blood pressure (mmHg)'] - X_train_imputed['Diastolic blood pressure (mmHg)']
     X_train_imputed['MAP'] = bmiCalc(X_train_imputed['Systolic blood pressure (mmHg)'],X_train_imputed['Diastolic blood pressure (mmHg)'])
-  
     X_test_imputed['Height (cm)'] = cmToM(X_test_imputed['Height (cm)'])
     X_test_imputed.rename(columns={'Height (cm)': 'Height (m)'}, inplace=True)
     X_test_imputed['BMI'] = bmiCalc(X_test_imputed['Height (m)'], X_test_imputed['Weight (kg)'])
@@ -162,50 +133,28 @@ def model_preparation_fuus(X_train, X_test):
     X_test_imputed_norm.columns = x_test.columns
     X_test_imputed_norm.index = x_test.index
     return X_train_imputed_norm, X_test_imputed_norm
-fuus_lr_list = [{'C': [0.1], 'penalty': ['l2'], 'solver': ['newton-cg']},\
-{'C': [0.1], 'penalty': ['l2'], 'solver': ['liblinear']},\
-{'C': [100], 'penalty': ['l2'], 'solver': ['newton-cg']},\
-{'C': [0.1], 'penalty': ['l2'], 'solver': ['newton-cg']},\
-{'C': [0.1], 'penalty': ['l2'], 'solver': ['liblinear']},\
-{'C': [0.01], 'penalty': ['l2'], 'solver': ['liblinear']},\
-{'C': [0.01], 'penalty': ['l2'], 'solver': ['newton-cg']},\
-{'C': [0.1], 'penalty': ['l2'], 'solver': ['lbfgs']},\
-{'C': [100], 'penalty': ['l2'], 'solver': ['newton-cg']},\
-{'C': [10], 'penalty': ['l2'], 'solver': ['newton-cg']}]
-def fuus_lr(X_train, y_train,sample_weight,i):
+
+def fuus_lr(X_train, y_train,sample_weight):
     # define models and parameters
     model = LogisticRegression(class_weight='balanced',max_iter=1000)
-    solvers = ['newton-cg', 'lbfgs', 'liblinear']
-    penalty = ['l2']
-    c_values = [100, 10, 1.0, 0.1, 0.01]
     # define grid search
-    grid = fuus_lr_list[i]
+    lr_params = {'solver': ['newton-cg', 'lbfgs', 'liblinear'], 'penalty': ['l2'], 'C': [100, 10, 1.0, 0.1, 0.01]}
     kfold = StratifiedKFold(n_splits=FOLDS, shuffle=True, random_state=9)
-    grid_search = GridSearchCV(model, grid,  scoring=f2_scorer, n_jobs=-1, cv=kfold)
+    grid_search = GridSearchCV(model, lr_params,  scoring=f2_scorer, n_jobs=-1, cv=kfold)
     grid_result = grid_search.fit(X_train, y_train)
     print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
     # fitting to the training data,
     lr_opt = LogisticRegression(**grid_result.best_params_,random_state=9, max_iter=1000,class_weight='balanced')
     lr_opt = lr_opt.fit(X_train, y_train,sample_weight=sample_weight)
     return lr_opt
-fuus_xgb_list = [{'learning_rate': [0.2], 'max_depth': [1], 'min_child_weight': [1], 'subsample': [0.3]},
-{'learning_rate': [0.3], 'max_depth': [1], 'min_child_weight': [5], 'subsample': [0.5]},
-{'learning_rate': [0.3], 'max_depth': [1], 'min_child_weight': [5], 'subsample': [0.3]},
-{'learning_rate': [0.3], 'max_depth': [1], 'min_child_weight': [3], 'subsample': [0.3]},
-{'learning_rate': [0.3], 'max_depth': [1], 'min_child_weight': [1], 'subsample': [0.5]},
-{'learning_rate': [0.3], 'max_depth': [1], 'min_child_weight': [5], 'subsample': [0.5]},
-{'learning_rate': [0.3], 'max_depth': [1], 'min_child_weight': [1], 'subsample': [0.3]},
-{'learning_rate': [0.3], 'max_depth': [1], 'min_child_weight': [3], 'subsample': [0.7]},
-{'learning_rate': [0.3], 'max_depth': [1], 'min_child_weight': [3], 'subsample': [0.3]},
-{'learning_rate': [0.3], 'max_depth': [1], 'min_child_weight': [1], 'subsample': [0.3]}]
-def fuus_xgb(X_train, y_train,sample_weight,i):
+
+def fuus_xgb(X_train, y_train,sample_weight):
     counter = Counter(y_train)
     estimate = counter[0] / counter[1]
-    #xgb_params = {'max_depth': [1,3,5], 
-              #'learning_rate': [0.1,0.2,0.3], 
-              #'min_child_weight': [1,3,5], 
-              #'subsample': [.3,0.5,0.7]}
-    xgb_params = fuus_xgb_list[i]
+    xgb_params = {'max_depth': [1,3,5], 
+              'learning_rate': [0.1,0.2,0.3], 
+              'min_child_weight': [1,3,5], 
+              'subsample': [.3,0.5,0.7]}
     # Creating the classifier
     xgb_clf = XGBClassifier(n_jobs=-1, random_state=123,scale_pos_weight=estimate)
     # Feeding the parameters into the grid for testing
@@ -217,7 +166,7 @@ def fuus_xgb(X_train, y_train,sample_weight,i):
     xgb_opt = xgb_opt.fit(X_train, y_train,sample_weight=sample_weight)
     return xgb_opt
 
-#######CDC-NHANES########
+# Dataset: CDC-NHANES
 def model_preparation_nhanes(X_train,X_test):
     encoder = OneHotEncoder(handle_unknown='ignore', sparse=False)
     # Selecting the columns to be one hot encoded
@@ -226,7 +175,7 @@ def model_preparation_nhanes(X_train,X_test):
     ohe_train = encoder.fit_transform(X_train[ohe_cols])
     ohe_test = encoder.transform(X_test[ohe_cols])
     # Getting the new names of the columns
-    col_names = encoder.get_feature_names(ohe_cols)
+    col_names = encoder.get_feature_names_out(ohe_cols)
     # Turning the encoded columns into dataframes
     ohe_train_df = pd.DataFrame(ohe_train, columns=col_names, index=X_train.index)
     ohe_test_df = pd.DataFrame(ohe_test, columns=col_names, index=X_test.index)
@@ -245,26 +194,11 @@ def model_preparation_nhanes(X_train,X_test):
     X_test_tf = pd.concat([ohe_test_df, trans_test_df], axis=1)
     return X_train_tf, X_test_tf
 
-nhanes_lr_list = [{'C': [0.01], 'penalty': ['l2'], 'solver': ['newton-cg']},\
-            {'C': [0.01], 'penalty': ['l2'], 'solver': ['lbfgs']},\
-            {'C': [0.01], 'penalty': ['l2'], 'solver': ['liblinear']},\
-            {'C': [0.01], 'penalty': ['l2'], 'solver': ['liblinear']},\
-            {'C': [0.01], 'penalty': ['l2'], 'solver': ['liblinear']},\
-            {'C': [0.01], 'penalty': ['l2'], 'solver': ['lbfgs']},\
-            {'C': [0.01], 'penalty': ['l2'], 'solver': ['newton-cg']},\
-            {'C': [0.01], 'penalty': ['l2'], 'solver': ['liblinear']},\
-            {'C': [0.01], 'penalty': ['l2'], 'solver': ['newton-cg']},\
-            {'C': [0.01], 'penalty': ['l2'], 'solver': ['liblinear']}]
-
-def nhanes_lr(X_train,y_train,sample_weight,i):
+def nhanes_lr(X_train,y_train,sample_weight):
     model = LogisticRegression(class_weight='balanced',max_iter=1000)
-    solvers = ['newton-cg', 'lbfgs', 'liblinear']
-    penalty = ['l2']
-    c_values = [100, 10, 1.0, 0.1, 0.01]
-    # define grid search
-    grid = nhanes_lr_list[i]
+    lr_params = {'solver': ['newton-cg', 'lbfgs', 'liblinear'], 'penalty': ['l2'], 'C': [100, 10, 1.0, 0.1, 0.01]}
     kfold = StratifiedKFold(n_splits=3, shuffle=True, random_state=9)
-    grid_search = GridSearchCV(model, grid,  scoring=f2_scorer, n_jobs=-1, cv=kfold)
+    grid_search = GridSearchCV(model, lr_params,  scoring=f2_scorer, n_jobs=-1, cv=kfold)
     grid_result = grid_search.fit(X_train, y_train)
     print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
     # fitting to the training data,
@@ -272,21 +206,13 @@ def nhanes_lr(X_train,y_train,sample_weight,i):
     lr_opt = lr_opt.fit(X_train, y_train,sample_weight=sample_weight)
     return lr_opt
 
-nhanes_xgb_list = [{'learning_rate': [0.15], 'max_depth': [3], 'min_child_weight': [8], 'subsample': [0.7]},\
-            {'learning_rate': [0.25], 'max_depth': [1], 'min_child_weight': [8], 'subsample': [0.7]},\
-            {'learning_rate': [0.05], 'max_depth': [5], 'min_child_weight': [12], 'subsample': [0.5]},\
-            {'learning_rate': [0.25], 'max_depth': [1], 'min_child_weight': [8], 'subsample': [0.7]},\
-            {'learning_rate': [0.05], 'max_depth': [3], 'min_child_weight': [8], 'subsample': [0.7]},\
-            {'learning_rate': [0.25], 'max_depth': [1], 'min_child_weight': [10], 'subsample': [0.5]},\
-            {'learning_rate': [0.15], 'max_depth': [3], 'min_child_weight': [12], 'subsample': [0.5]},\
-            {'learning_rate': [0.25], 'max_depth': [1], 'min_child_weight': [10], 'subsample': [0.5]},\
-            {'learning_rate': [0.25], 'max_depth': [1], 'min_child_weight': [12], 'subsample': [0.3]},\
-            {'learning_rate': [0.15], 'max_depth': [3], 'min_child_weight': [12], 'subsample': [0.7]}]
-
-def nhanes_xgb(X_train,y_train,sample_weight,i):
+def nhanes_xgb(X_train,y_train,sample_weight):
     counter = Counter(y_train)
     estimate = counter[0] / counter[1]
-    xgb_params = nhanes_xgb_list[i]
+    xgb_params = {'max_depth': [1,3,5], 
+              'learning_rate': [0.05,0.15,0.25], 
+              'min_child_weight': [8,10,12], 
+              'subsample': [0.3,0.5,0.7]}
     # Creating the classifier
     xgb_clf = XGBClassifier(n_jobs=-1, random_state=123,scale_pos_weight=estimate)
     kfold = StratifiedKFold(n_splits=3, shuffle=True, random_state=9)
@@ -299,7 +225,7 @@ def nhanes_xgb(X_train,y_train,sample_weight,i):
     xgb_opt = xgb_opt.fit(X_train, y_train,sample_weight=sample_weight)
     return xgb_opt
     
-#######UKBB########
+# Dataset: UKB
 def model_preparation_ukbb(X_train,X_test,var_encode,continous_var,keep_var):
     # Selecting the columns to be one hot encoded
     ohe_cols = var_encode
@@ -311,7 +237,7 @@ def model_preparation_ukbb(X_train,X_test,var_encode,continous_var,keep_var):
     ohe_train = encoder.fit_transform(X_train_encode)
     ohe_test = encoder.transform(X_test_encode)
     # Getting the new names of the columns
-    col_names = encoder.get_feature_names(ohe_cols)
+    col_names = encoder.get_feature_names_out(ohe_cols)
     # Turning the encoded columns into dataframes
     ohe_train_df = pd.DataFrame(ohe_train, columns=col_names, index=X_train.index)
     ohe_test_df = pd.DataFrame(ohe_test, columns=col_names, index=X_test.index)

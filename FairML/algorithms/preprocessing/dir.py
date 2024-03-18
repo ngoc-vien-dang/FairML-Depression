@@ -1,7 +1,7 @@
 """
 File name: dir.py
 Author: ngocviendang
-Date created: October 26, 2022
+Date created: March 18, 2024
 
 This file contains functions for addressing algorithmic bias (dir).
 """
@@ -16,7 +16,7 @@ from joblib import dump, load
 from FairML.utils import dataset
 
 def dir_(X_train,y_train,X_test,y_test,cls_mdls,unprivileged_groups,privileged_groups,\
-              conditions,label_name,protected_attribute_name,protected_attribute_values,i,model_arch,sup):
+              conditions,label_name,protected_attribute_name,protected_attribute_values,i,model_func,sup):
     train_ds = BinaryLabelDataset(df=X_train.join(y_train),\
                     label_names=[label_name],\
                     protected_attribute_names=[protected_attribute_name],
@@ -25,14 +25,6 @@ def dir_(X_train,y_train,X_test,y_test,cls_mdls,unprivileged_groups,privileged_g
                     label_names=[label_name],\
                     protected_attribute_names=[protected_attribute_name],
                     favorable_label=1, unfavorable_label=0)
-    model_dict = {'ls-lr': dataset.longscan_lr,\
-              'ls-xgb': dataset.longscan_xgb,\
-              'fu-lr': dataset.fuus_lr,\
-              'fu-xgb': dataset.fuus_xgb,\
-              'nh-lr': dataset.nhanes_lr,\
-              'nh-xgb': dataset.nhanes_xgb,\
-              'uk-lr': dataset.ukb_lr,\
-              'uk-xgb': dataset.ukb_xgb}
     di = np.array([])
     train_dir_ds = None
     test_dir_ds = None
@@ -48,10 +40,7 @@ def dir_(X_train,y_train,X_test,y_test,cls_mdls,unprivileged_groups,privileged_g
         protected_index = [train_ds.feature_names.index(m) for m in sup]
         X_train_dir_i = np.delete(train_dir_ds_i.features, protected_index, axis=1)
         X_test_dir_i = np.delete(test_dir_ds_i.features, protected_index, axis=1)
-        if 'uk' in model_arch:
-            lr_dir_mdl_i = model_dict[model_arch](X_train_dir_i, y_train,None) 
-        else:
-            lr_dir_mdl_i = model_dict[model_arch](X_train_dir_i, y_train,None,i)
+        model_opt = model_func(X_train_sup, y_train,None) 
         test_dir_ds_pred_i = test_dir_ds_i.copy()
         test_dir_ds_pred_i.labels = lr_dir_mdl_i.predict(X_test_dir_i)
         metrics_test_dir_ds = BinaryLabelDatasetMetric(test_dir_ds_pred_i,\

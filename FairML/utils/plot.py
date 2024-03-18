@@ -93,7 +93,7 @@ def plot_tradeoff(orig,sup,rw,dir,cpp,st,title,imgpath):
     plt.errorbar(orig['EOD'].mean(), orig['bacc_test'].mean(), xerr=orig['EOD'].std(),\
              yerr=orig['bacc_test'].std(), marker='s',color = 'gray',ms=7, 
             ecolor = 'gray') 
-    plt.errorbar(sup['EOD'].mean(), sup['bacc_test'].mean(), xerr=orig['EOD'].std(),\
+    plt.errorbar(sup['EOD'].mean(), sup['bacc_test'].mean(), xerr=sup['EOD'].std(),\
              yerr=sup['bacc_test'].std(), marker='s',color = '#d62728',ms=7, 
             ecolor = '#d62728') 
     plt.errorbar(rw['EOD'].mean(), rw['bacc_test'].mean(), xerr=rw['EOD'].std(),\
