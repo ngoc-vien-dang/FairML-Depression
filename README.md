@@ -5,7 +5,7 @@ Author: Vien Ngoc Dang
   <img src="imgs/fairness_pipeline.png">
 </p>
 
-This is the implementation of the paper <b><i>Fairness and bias correction in machine learning for depression prediction: results from four study populations</i></b> ([Dang et al., 2023](https://arxiv.org/abs/2211.05321)). In this project, we will see how to audit and address algorithmic bias. 
+This is the implementation of the paper <b><i>Fairness and bias correction in machine learning for depression prediction across four study populations</i></b> ([Dang et al., 2024](https://www.nature.com/articles/s41598-024-58427-7)). In this project, we will see how to audit and address algorithmic bias. 
 
 #### Supported bias mitigation strategies
 * Suppression (SUP)
